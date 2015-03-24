@@ -5,7 +5,7 @@
  *
  * @author     Eric Christenson (EricChristenson.com)
  * @copyright  2015
- * @version    1.1
+ * @version    1.15
  * @license    MIT Public License (http://opensource.org/licenses/MIT)
  *
  * @see  QueryWrapperException class
@@ -27,14 +27,14 @@ class QueryWrapper
 
 
 	/**
-	 * Runs a query and returns the data as a multi-level array.
-	 *
-	 * @param   string  $query
-	 * @param   array   $placeholders (optional)
-	 * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC)
+     * Runs a query and returns the data as a multi-level array.
+     *
+     * @param   string  $query
+     * @param   array   $placeholders (optional)
+     * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC)
      * @throws  QueryWrapperException
-	 * @return  array
-	 */
+     * @return  array
+     */
 	public static function fetchAll($query, $placeholders = array(), $fetchmode = self::FETCH_ASSOC) {
 		if ($fetchmode !== self::FETCH_ASSOC && $fetchmode !== self::FETCH_NUM) {
             throw new QueryWrapperException("$fetchmode is not a valid fetchmode.");
@@ -46,15 +46,15 @@ class QueryWrapper
 	}
 
 	/**
-	 * Runs a query and returns the data as an associative array if there 
-	 *  are two columns, otherwise as a multi-level array.
-	 *
-	 * @param   string  $query
-	 * @param   array   $placeholders (optional)
-	 * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC)
+     * Runs a query and returns the data as an associative array if there 
+     *  are two columns, otherwise as a multi-level array.
+     *
+     * @param   string  $query
+     * @param   array   $placeholders (optional)
+     * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC)
      * @throws  QueryWrapperException
-	 * @return  array (enumerated or associative)
-	 */
+     * @return  array (enumerated or associative)
+     */
 	public static function fetchAssoc($query, $placeholders = array(), $fetchmode = self::FETCH_ASSOC) {
 		if ($fetchmode !== self::FETCH_ASSOC && $fetchmode !== self::FETCH_NUM) {
             throw new QueryWrapperException("$fetchmode is not a valid fetchmode.");
@@ -76,13 +76,13 @@ class QueryWrapper
 	}
 
 	/**
-	 * Runs a query and returns the first column.
-	 *
-	 * @param   string  $query
-	 * @param   array   $placeholders (optional)
-	 * @param   int     $column (optional. Default is 0-indexed)
-	 * @return  array [int|mixed]
-	 */
+     * Runs a query and returns the first column.
+     *
+     * @param   string  $query
+     * @param   array   $placeholders (optional)
+     * @param   int     $column (optional. Default is 0-indexed)
+     * @return  array [int|mixed]
+     */
 	public static function fetchCol($query, $placeholders = array(), $column = 0) {
 		$result = self::getRawResults($query, $placeholders);
 
@@ -96,12 +96,12 @@ class QueryWrapper
 	}
 
 	/**
-	 * Runs a query and returns the first column of the first row.
-	 *
-	 * @param   string  $query
-	 * @param   array   $placeholders  (optional)
-	 * @return  array (empty string on failure)
-	 */
+     * Runs a query and returns the first column of the first row.
+     *
+     * @param   string  $query
+     * @param   array   $placeholders  (optional)
+     * @return  array (empty string on failure)
+     */
 	public static function fetchOne($query, $placeholders = array()) {
 		if (strpos(strtolower($query), ' limit') < 1) {
 			$query .= ' LIMIT 1'; // adding LIMIT 1 speeds up the query
@@ -114,14 +114,14 @@ class QueryWrapper
 	}
 
 	/**
-	 * Runs a query and returns the first row of the result.
-	 *
-	 * @param   string  $query
-	 * @param   array   $placeholders  (optional)
-	 * @param   int     $fetchmode     (optional. QueryWrapper constant. Defaults to ASSOC)
+     * Runs a query and returns the first row of the result.
+     *
+     * @param   string  $query
+     * @param   array   $placeholders  (optional)
+     * @param   int     $fetchmode     (optional. QueryWrapper constant. Defaults to ASSOC)
      * @throws  QueryWrapperException
-	 * @return  array
-	 */
+     * @return  array
+     */
 	public static function fetchRow($query, $placeholders = array(), $fetchmode = self::FETCH_ASSOC) {
 		if (!is_int($fetchmode)) {
             throw new QueryWrapperException("$fetchmode is not a valid fetchmode.");
@@ -134,10 +134,10 @@ class QueryWrapper
 	}
 
 	/**
-	 * @param   string  $query       
-	 * @param   array   $placeholders (optional)
-	 * @return  int (number of the last inserted row)
-	 */
+     * @param   string  $query       
+     * @param   array   $placeholders (optional)
+     * @return  int (number of the last inserted row)
+     */
 	public static function query($query, $placeholders = array()) {
 		self::getRawResults($query, $placeholders);
 
@@ -148,18 +148,18 @@ class QueryWrapper
 
 	//------------------------------ HELPERS ------------------------------//
 	/**
-	 * @return  DBConnect
-	 */
+     * @return  DBConnect
+     */
 	private static function getConnection() {
 		return DBConnect::connect('READ_ONLY');
 	}
 
 	/**
-	 * @param   string  $query
-	 * @param   array   $placeholders
-	 * @throws  PDOException (bubbles up excepetion)
-	 * @return  PDO
-	 */
+     * @param   string  $query
+     * @param   array   $placeholders
+     * @throws  PDOException (bubbles up excepetion)
+     * @return  PDO
+     */
 	private static function getRawResults($query, array $placeholders) {
 		$connection = self::getConnection();
 		$result = $connection->prepare($query);
@@ -182,11 +182,11 @@ class QueryWrapper
 	}
 
 	/**
-	 * @param   PDO     $query  
-	 * @param   array   $placeholders
+     * @param   PDO     $query  
+     * @param   array   $placeholders
      * @throws  QueryWrapperException
-	 * @return  void
-	 */
+     * @return  void
+     */
 	private static function bindPlaceholder($query, array $placeholders) {
 		if (isset($placeholders[2])) {
 			if ($placeholders[2] !== self::PARAM_STR && $placeholders[2] !== self::PARAM_INT) {
@@ -205,5 +205,8 @@ class QueryWrapper
 /**
  * Class QueryWrapperException
  * Custom exception
+ *
+ * @extends  Exception
+ * @see  QueryWrapper
  */
 class QueryWrapperException extends Exception { }
