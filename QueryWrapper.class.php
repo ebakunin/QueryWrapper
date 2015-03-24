@@ -1,18 +1,14 @@
 <?php
 /**
  * QueryWrapper class
+ * A singleton. No constructors.
  *
- * @author  Eric Christenson (EricChristenson.com)
+ * @author     Eric Christenson (EricChristenson.com)
+ * @copyright  2015
+ * @version    1.1
+ * @license    MIT Public License (http://opensource.org/licenses/MIT)
  *
- * A singleton class. No constructors.
- *
- * @method  fetchAll    Runs a query and returns a multi-level array.
- * @method  fetchAssoc  Runs a query and returns an associative array if
- *                          two columns, otherwise a multi-level array.
- * @method  fetchRow    Runs a query and returns the first row.
- * @method  fetchCol    Runs a query and returns the designated column.
- * @method  fetchOne    Runs a query and returns the first column of the first row.
- * @method  query       Executes a query and returns the last row inserted.
+ * @see  QueryWrapperException class
  */
 class QueryWrapper
 {
@@ -23,12 +19,11 @@ class QueryWrapper
 	# simplified parameter types
 	const PARAM_INT = PDO::PARAM_INT;
 	const PARAM_STR = PDO::PARAM_STR;
-
 	
-	# static singleton
-	private function __construct() { return void; }
-	private function __clone() { return void; }
-	private function __wakeup() { return void; }
+	# enforce singleton
+	private function __construct() { return null; }
+	private function __clone() { return null; }
+	private function __wakeup() { return null; }
 
 
 	/**
@@ -36,12 +31,13 @@ class QueryWrapper
 	 *
 	 * @param   string  $query
 	 * @param   array   $placeholders (optional)
-	 * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC constant.)
+	 * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC)
+     * @throws  QueryWrapperException
 	 * @return  array
 	 */
 	public static function fetchAll($query, $placeholders = array(), $fetchmode = self::FETCH_ASSOC) {
 		if ($fetchmode !== self::FETCH_ASSOC && $fetchmode !== self::FETCH_NUM) {
-			exit("$fetchmode is not a valid fetchmode.");
+            throw new QueryWrapperException("$fetchmode is not a valid fetchmode.");
 		}
 
 		$result = self::getRawResults($query, $placeholders);
@@ -55,12 +51,13 @@ class QueryWrapper
 	 *
 	 * @param   string  $query
 	 * @param   array   $placeholders (optional)
-	 * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC constant)
+	 * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC)
+     * @throws  QueryWrapperException
 	 * @return  array (enumerated or associative)
 	 */
 	public static function fetchAssoc($query, $placeholders = array(), $fetchmode = self::FETCH_ASSOC) {
 		if ($fetchmode !== self::FETCH_ASSOC && $fetchmode !== self::FETCH_NUM) {
-			exit("$fetchmode is not a valid fetchmode.");
+            throw new QueryWrapperException("$fetchmode is not a valid fetchmode.");
 		}
 	
 		$result = self::getRawResults($query, $placeholders);
@@ -84,7 +81,7 @@ class QueryWrapper
 	 * @param   string  $query
 	 * @param   array   $placeholders (optional)
 	 * @param   int     $column (optional. Default is 0-indexed)
-	 * @return  array[int|mixed]
+	 * @return  array [int|mixed]
 	 */
 	public static function fetchCol($query, $placeholders = array(), $column = 0) {
 		$result = self::getRawResults($query, $placeholders);
@@ -103,11 +100,11 @@ class QueryWrapper
 	 *
 	 * @param   string  $query
 	 * @param   array   $placeholders  (optional)
-	 * @return  mixed (empty string on failure)
+	 * @return  array (empty string on failure)
 	 */
 	public static function fetchOne($query, $placeholders = array()) {
 		if (strpos(strtolower($query), ' limit') < 1) {
-			$query .= ' LIMIT 1'; # adding LIMIT 1 speeds up the query
+			$query .= ' LIMIT 1'; // adding LIMIT 1 speeds up the query
 		}
 
 		$result = self::getRawResults($query, $placeholders);
@@ -122,11 +119,12 @@ class QueryWrapper
 	 * @param   string  $query
 	 * @param   array   $placeholders  (optional)
 	 * @param   int     $fetchmode     (optional. QueryWrapper constant. Defaults to ASSOC)
+     * @throws  QueryWrapperException
 	 * @return  array
 	 */
 	public static function fetchRow($query, $placeholders = array(), $fetchmode = self::FETCH_ASSOC) {
 		if (!is_int($fetchmode)) {
-			exit("$fetchmode is not a valid fetchmode.");
+            throw new QueryWrapperException("$fetchmode is not a valid fetchmode.");
 		}
 
 		$result = self::getRawResults($query, $placeholders);
@@ -159,6 +157,7 @@ class QueryWrapper
 	/**
 	 * @param   string  $query
 	 * @param   array   $placeholders
+	 * @throws  PDOException (bubbles up excepetion)
 	 * @return  PDO
 	 */
 	private static function getRawResults($query, array $placeholders) {
@@ -175,9 +174,8 @@ class QueryWrapper
 
 		try {
 			$result->execute();
-		}
-		catch (PDOException $e) {
-			exit($e->getMessage());
+		} catch (PDOException $e) {
+			throw new PDOException($e->getMessage());
 		}
 		
 		return $result;
@@ -186,12 +184,13 @@ class QueryWrapper
 	/**
 	 * @param   PDO     $query  
 	 * @param   array   $placeholders
+     * @throws  QueryWrapperException
 	 * @return  void
 	 */
 	private static function bindPlaceholder($query, array $placeholders) {
 		if (isset($placeholders[2])) {
 			if ($placeholders[2] !== self::PARAM_STR && $placeholders[2] !== self::PARAM_INT) {
-				exit("{$placeholders[2]} is not an accepted data type.");
+                throw new QueryWrapperException("{$placeholders[2]} is not an accepted data type.");
 			} else {
 				$data_type = $placeholders[2];
 			}
@@ -202,3 +201,9 @@ class QueryWrapper
 		$query->bindParam(":$placeholders[0]", $placeholders[1], $data_type);
 	}
 }
+
+/**
+ * Class QueryWrapperException
+ * Custom exception
+ */
+class QueryWrapperException extends Exception { }
