@@ -5,17 +5,18 @@
  *
  * @author     Eric Christenson (EricChristenson.com)
  * @copyright  2015
- * @version    1.2
+ * @version    2.0
  * @license    MIT Public License (http://opensource.org/licenses/MIT)
  *
  * @see  QueryWrapperException class
- * @requires  DBConnect class
+ * @uses  DBConnect class
  */
 class QueryWrapper
 {
     # simplified fetchmodes
     const FETCH_ASSOC = PDO::FETCH_ASSOC;
     const FETCH_NUM   = PDO::FETCH_NUM;
+    const FETCH_OBJ   = PDO::FETCH_OBJ;
 
     # simplified parameter types
     const PARAM_INT = PDO::PARAM_INT;
@@ -24,7 +25,6 @@ class QueryWrapper
     # enforce singleton
     private function __construct() { return null; }
     private function __clone() { return null; }
-    private function __wakeup() { return null; }
 
 
     /**
@@ -45,6 +45,18 @@ class QueryWrapper
 
         return $result->fetchAll($fetchmode);
     }
+    /**
+     * Runs a query and returns the data as anonymous object where the column names are properties.
+     *
+     * @param   string  $query
+     * @param   array   $placeholders (optional)
+     * @return  stdClass
+     */
+    public static function fetchObj($query, $placeholders = array()) {
+        $result = self::getRawResults($query, $placeholders);
+
+        return $result->fetchAll(self::FETCH_OBJ);
+    }
 
     /**
      * Runs a query and returns the data as an associative array if there
@@ -52,7 +64,7 @@ class QueryWrapper
      *
      * @param   string  $query
      * @param   array   $placeholders (optional)
-     * @param   int     $fetchmode (optional. Defaults to QueryWrapper::ASSOC)
+     * @param   int     $fetchmode (optional. Defaults to QueryWrapper::FETCH_ASSOC)
      * @throws  QueryWrapperException
      * @return  array (enumerated or associative)
      */
@@ -101,7 +113,7 @@ class QueryWrapper
      *
      * @param   string  $query
      * @param   array   $placeholders  (optional)
-     * @return  array (empty string on failure)
+     * @return  array|null
      */
     public static function fetchOne($query, $placeholders = array()) {
         if (strpos(strtolower($query), ' limit') < 1) {
@@ -111,7 +123,7 @@ class QueryWrapper
         $result = self::getRawResults($query, $placeholders);
         $answer = $result->fetch();
 
-        return (empty($answer)) ? '' : array_shift($answer);
+        return (!empty($answer)) ? array_shift($answer) : null;
     }
 
     /**
@@ -152,7 +164,7 @@ class QueryWrapper
      * @return  DBConnect
      */
     private static function getConnection() {
-        return DBConnect::connect('READ_ONLY');
+        return DBConnect::connect();
     }
 
     /**
@@ -186,7 +198,6 @@ class QueryWrapper
      * @param   PDO     $query
      * @param   array   $placeholders
      * @throws  QueryWrapperException
-     * @return  void
      */
     private static function bindPlaceholder($query, array $placeholders) {
         if (isset($placeholders[2])) {
@@ -203,11 +214,11 @@ class QueryWrapper
     }
 }
 
-    /**
-     * Class QueryWrapperException
-     * Custom exception
-     *
-     * @extends  Exception
-     * @see  QueryWrapper
-     */
-    class QueryWrapperException extends Exception { }
+/**
+ * Class QueryWrapperException
+ * Custom exception
+ *
+ * @extends  Exception
+ * @see  QueryWrapper
+ */
+class QueryWrapperException extends Exception { }
